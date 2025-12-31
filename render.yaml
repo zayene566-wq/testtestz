@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: quiz-game
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    disk:
+      name: quiz-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DB_PATH
+        value: /data/quiz.db
+      - key: SESSION_SECRET
+        generateValue: true

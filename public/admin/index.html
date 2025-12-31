@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم كويز</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Authentication View -->
+    <div id="auth-section">
+        <div class="login-card">
+            <h2>تسجيل دخول الأدمن</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">دخول</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App Layout (Hidden by default) -->
+    <div id="app-layout" class="hidden">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">كويز أدمن</div>
+                <button id="close-sidebar" class="btn-sm btn-danger hidden"><i class="fas fa-times"></i></button>
+            </div>
+            <ul class="nav-links">
+                <li class="nav-item active" data-view="dashboard">
+                    <span class="nav-icon"><i class="fas fa-home"></i></span>
+                    <span>الرئيسية</span>
+                </li>
+                <li class="nav-item" data-view="categories">
+                    <span class="nav-icon"><i class="fas fa-layer-group"></i></span>
+                    <span>الكاتيغوري</span>
+                </li>
+                <li class="nav-item" data-view="users">
+                    <span class="nav-icon"><i class="fas fa-users"></i></span>
+                    <span>اللاعبين</span>
+                </li>
+                <li class="nav-item" data-view="daily-rewards">
+                    <span class="nav-icon"><i class="fas fa-gift"></i></span>
+                    <span>المكافآت اليومية</span>
+                </li>
+                <li class="nav-item" data-view="levels">
+                    <span class="nav-icon"><i class="fas fa-trophy"></i></span>
+                    <span>المستويات (Levels)</span>
+                </li>
+                <li class="nav-item" id="logout-btn">
+                    <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+                    <span>خروج</span>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="header-action">
+                <button id="mobile-menu-btn" class="btn btn-primary"><i class="fas fa-bars"></i></button>
+                <h2 id="page-title">لوحة القيادة</h2>
+            </header>
+
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="view-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-value" id="stat-players">0</div>
+                            <div class="stat-label">اللاعبين</div>
+                        </div>
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-value" id="stat-stars">0</div>
+                            <div class="stat-label">مجموع النجوم</div>
+                        </div>
+                        <i class="fas fa-star fa-2x"></i>
+                    </div>
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-value" id="stat-categories">0</div>
+                            <div class="stat-label">الكاتيغوري</div>
+                        </div>
+                        <i class="fas fa-layer-group fa-2x"></i>
+                    </div>
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-value" id="stat-stages">0</div>
+                            <div class="stat-label">المراحل</div>
+                        </div>
+                        <i class="fas fa-flag fa-2x"></i>
+                    </div>
+                </div>
+
+                <h3>أفضل اللاعبين</h3>
+                <div class="table-container">
+                    <table id="top-players-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>النجوم</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Categories View -->
+            <div id="view-categories" class="view-section hidden">
+                <div class="header-action">
+                    <h3>إدارة الكاتيغوري</h3>
+                    <button class="btn btn-primary" onclick="openCategoryModal()">إضافة جديد</button>
+                </div>
+                <div class="table-container">
+                    <table id="categories-table">
+                        <thead>
+                            <tr>
+                                <th>الترتيب</th>
+                                <th>الاسم</th>
+                                <th>اللون</th>
+                                <th>السعر</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Stages/Questions Subview (Dynamically injected or separate?) -->
+                <div id="stages-container" class="hidden" style="margin-top: 2rem;">
+                    <hr>
+                    <div class="header-action">
+                        <h3>المراحل: <span id="current-category-name"></span></h3>
+                        <button class="btn btn-primary" onclick="openStageModal()">إضافة مرحلة</button>
+                    </div>
+                    <div id="stages-list"></div>
+                </div>
+            </div>
+
+            <!-- Users View -->
+            <div id="view-users" class="view-section hidden">
+                <div class="header-action">
+                    <h3>إدارة اللاعبين</h3>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="user-search" placeholder="بحث عن لاعب..."
+                            style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc; width: 200px;">
+                        <button class="btn btn-danger" onclick="deleteAllUsers()">
+                            <i class="fas fa-trash"></i> حذف الجميع
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="users-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>النجوم</th>
+                                <th>القلوب</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Levels View -->
+            <div id="view-levels" class="view-section hidden">
+                <div class="header-action">
+                    <h3>إدارة المستويات (Levels)</h3>
+                    <button class="btn btn-primary" onclick="openLevelModal()">إضافة مستوى</button>
+                </div>
+                <div class="table-container">
+                    <table id="levels-table">
+                        <thead>
+                            <tr>
+                                <th>رقم المستوى</th>
+                                <th>اسم المستوى</th>
+                                <th>XP المطلوبة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Daily Rewards View -->
+            <div id="view-daily-rewards" class="view-section hidden">
+                <div class="header-action">
+                    <h3>إدارة المكافآت اليومية</h3>
+                    <button class="btn btn-primary" onclick="openDailyRewardModal()">إضافة مكافأة</button>
+                </div>
+                <div class="table-container">
+                    <table id="daily-rewards-table">
+                        <thead>
+                            <tr>
+                                <th>اليوم</th>
+                                <th>النوع</th>
+                                <th>القيمة</th>
+                                <th>الترتيب</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="category-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="cat-modal-title">إضافة كاتيغوري</h3>
+            <form id="category-form">
+                <input type="hidden" id="cat-id">
+                <div class="form-group">
+                    <label>الاسم</label>
+                    <input type="text" id="cat-name" required>
+                </div>
+                <div class="form-group">
+                    <label>اللون (Hex)</label>
+                    <input type="color" id="cat-color" value="#3b82f6">
+                </div>
+                <div class="form-group">
+                    <label>سعر الفتح (نجوم)</label>
+                    <input type="number" id="cat-cost" value="0">
+                </div>
+                <div class="form-group">
+                    <label>ترتيب الظهور</label>
+                    <input type="number" id="cat-order" value="0">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="cat-active" checked> مفعّلة
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary">حفظ</button>
+                <button type="button" class="btn btn-danger" onclick="closeModal('category-modal')">إلغاء</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stage Modal -->
+    <div id="stage-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>إدارة المرحلة</h3>
+            <form id="stage-form">
+                <input type="hidden" id="stage-id">
+                <div class="form-group">
+                    <label>ترتيب</label>
+                    <input type="number" id="stage-order" value="0">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="stage-active" checked> مفعّلة
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary">حفظ</button>
+                <button type="button" class="btn btn-danger" onclick="closeModal('stage-modal')">إلغاء</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Question Modal -->
+    <div id="question-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>إدارة السؤال</h3>
+            <form id="question-form">
+                <input type="hidden" id="q-id">
+                <div class="form-group">
+                    <label>نص السؤال</label>
+                    <input type="text" id="q-text" required>
+                </div>
+                <div class="form-group">
+                    <label>الإجابة 1</label>
+                    <input type="text" id="q-ans1" required>
+                </div>
+                <div class="form-group">
+                    <label>الإجابة 2</label>
+                    <input type="text" id="q-ans2" required>
+                </div>
+                <div class="form-group">
+                    <label>الإجابة 3</label>
+                    <input type="text" id="q-ans3" required>
+                </div>
+                <div class="form-group">
+                    <label>الإجابة 4</label>
+                    <input type="text" id="q-ans4" required>
+                </div>
+                <div class="form-group">
+                    <label>رقم الإجابة الصحيحة (1-4)</label>
+                    <input type="number" id="q-correct" min="1" max="4" required>
+                </div>
+                <button type="submit" class="btn btn-primary">حفظ</button>
+                <button type="button" class="btn btn-danger" onclick="closeModal('question-modal')">إلغاء</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Level Modal -->
+    <div id="level-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="level-modal-title">إضافة مستوى</h3>
+            <form id="level-form">
+                <input type="hidden" id="level-id">
+                <div class="form-group">
+                    <label>رقم المستوى</label>
+                    <input type="number" id="level-number" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>اسم المستوى</label>
+                    <input type="text" id="level-name" placeholder="مثال: مبتدئ، خبير، ماستر...">
+                </div>
+                <div class="form-group">
+                    <label>XP المطلوبة</label>
+                    <input type="number" id="level-xp" min="0" required>
+                </div>
+                <button type="submit" class="btn btn-primary">حفظ</button>
+                <button type="button" class="btn btn-danger" onclick="closeModal('level-modal')">إلغاء</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Daily Reward Modal -->
+    <div id="daily-reward-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="reward-modal-title">إضافة مكافأة يومية</h3>
+            <form id="daily-reward-form">
+                <input type="hidden" id="reward-id">
+                <div class="form-group">
+                    <label>رقم اليوم</label>
+                    <input type="number" id="reward-day" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>نوع المكافأة</label>
+                    <select id="reward-type" required>
+                        <option value="stars">نجوم</option>
+                        <option value="hearts">قلوب</option>
+                        <option value="boost_15m">تعزيز 15 دقيقة</option>
+                        <option value="boost_5h">تعزيز 5 ساعات</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>القيمة</label>
+                    <input type="number" id="reward-value" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>ترتيب الظهور</label>
+                    <input type="number" id="reward-order" value="0">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="reward-active" checked> مفعّلة
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary">حفظ</button>
+                <button type="button" class="btn btn-danger" onclick="closeModal('daily-reward-modal')">إلغاء</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>كويز ماستر</title>
+    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+
+<body>
+
+    <div id="app">
+        <!-- Header / HUD -->
+        <header id="game-header" class="hidden">
+            <div class="resources">
+                <div class="res"><i class="fas fa-heart text-danger"></i> <span id="hud-hearts">5</span></div>
+                <div class="res"><i class="fas fa-star text-warning"></i> <span id="hud-stars">0</span></div>
+            </div>
+            <button class="btn-icon btn-settings" onclick="openSettings()">
+                <i class="fas fa-cog"></i>
+            </button>
+        </header>
+
+        <!-- Login View -->
+        <section id="view-login" class="view">
+            <div class="login-container">
+                <div class="logo">
+                    <i class="fas fa-brain fa-3x"></i>
+                    <h1>كويز ماستر</h1>
+                </div>
+                <form id="login-form">
+                    <input type="text" id="username-input" placeholder="أدخل اسمك..." required autocomplete="off">
+                    <button type="submit" class="btn btn-lg btn-primary pulse">ابـدأ اللعـب</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Categories View -->
+        <section id="view-categories" class="view hidden">
+            <h2 class="section-title">اختر التحدي</h2>
+            <div id="categories-grid" class="grid-container">
+                <!-- Categories injected here -->
+            </div>
+        </section>
+
+        <!-- Stages View -->
+        <section id="view-stages" class="view hidden">
+            <div class="view-header">
+                <button class="btn-icon" onclick="showView('categories')"><i class="fas fa-arrow-right"></i></button>
+                <h2 id="stage-cat-title">المراحل</h2>
+            </div>
+            <div id="stages-list"></div>
+        </section>
+
+        <!-- Store View -->
+        <section id="view-store" class="view hidden">
+            <div class="view-header">
+                <button class="btn-icon" onclick="showView('categories')"><i class="fas fa-arrow-right"></i></button>
+                <h2>المتجر</h2>
+            </div>
+
+            <div class="store-grid">
+                <!-- Hearts -->
+                <div class="store-section">
+                    <h3>القلوب</h3>
+                    <div class="store-item" onclick="buyItem('heart')">
+                        <i class="fas fa-heart text-danger fa-2x"></i>
+                        <span>قلب واحد</span>
+                        <div class="price">50 <i class="fas fa-star text-warning"></i></div>
+                    </div>
+                </div>
+
+                <!-- Boosts -->
+                <div class="store-section">
+                    <h3>التعزيزات</h3>
+                    <div class="store-item" onclick="buyItem('boost_15m')">
+                        <i class="fas fa-infinity text-primary fa-2x"></i>
+                        <span>لا نهائي (15د)</span>
+                        <div class="price">200 <i class="fas fa-star text-warning"></i></div>
+                    </div>
+                    <div class="store-item" onclick="buyItem('boost_5h')">
+                        <i class="fas fa-infinity text-primary fa-2x"></i>
+                        <span>لا نهائي (5س)</span>
+                        <div class="price">1000 <i class="fas fa-star text-warning"></i></div>
+                    </div>
+                </div>
+
+                <!-- Hints -->
+                <div class="store-section">
+                    <h3>المساعدات</h3>
+                    <div class="store-item" onclick="buyItem('hint_skip')">
+                        <i class="fas fa-forward text-success fa-2x"></i>
+                        <span>تخطي</span>
+                        <div class="price">30 <i class="fas fa-star text-warning"></i></div>
+                    </div>
+                    <div class="store-item" onclick="buyItem('hint_remove')">
+                        <i class="fas fa-bomb text-danger fa-2x"></i>
+                        <span>حذف 2</span>
+                        <div class="price">20 <i class="fas fa-star text-warning"></i></div>
+                    </div>
+                    <div class="store-item" onclick="buyItem('hint_time')">
+                        <i class="fas fa-clock text-info fa-2x"></i>
+                        <span>+وقت</span>
+                        <div class="price">15 <i class="fas fa-star text-warning"></i></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quiz View -->
+        <section id="view-quiz" class="view hidden">
+            <div class="timer-bar-container">
+                <div id="timer-bar"></div>
+            </div>
+
+            <div class="quiz-progress">
+                <div class="bar-container">
+                    <div id="progress-bar" class="bar"></div>
+                </div>
+                <div class="quiz-info-row">
+                    <span id="q-counter">1/10</span>
+                    <div class="timer-container">
+                        <i class="fas fa-clock"></i> <span id="timer">15s</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question-card">
+                <h3 id="question-text">...</h3>
+            </div>
+
+            <div class="answers-grid" id="answers-container">
+                <!-- Answers -->
+            </div>
+        </section>
+
+        <!-- Success Modal -->
+        <div id="modal-success" class="modal hidden">
+            <div class="modal-content">
+                <i class="fas fa-trophy fa-4x text-warning rubberBand"></i>
+                <h2>أحسنت!</h2>
+                <div class="stars-result" id="stars-result">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p>تم إكمال المرحلة بنجاح</p>
+                <button class="btn btn-primary" onclick="backToStages()">تابـع</button>
+            </div>
+        </div>
+
+        <!-- Custom Confirm Modal -->
+        <div id="modal-confirm" class="modal hidden">
+            <div class="modal-content">
+                <i class="fas fa-question-circle fa-4x text-primary pulse"></i>
+                <h3 style="margin: 1rem 0;">تأكيد الشراء</h3>
+                <p id="confirm-message" style="margin-bottom: 1.5rem;">هل أنت متأكد؟</p>
+                <div class="actions" style="display:flex; gap:10px; justify-content:center;">
+                    <button id="btn-confirm-yes" class="btn btn-success">نعم، شراء</button>
+                    <button class="btn btn-danger" onclick="closeModal('modal-confirm')">إلغاء</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Failure Modal -->
+        <div id="modal-fail" class="modal hidden">
+            <div class="modal-content">
+                <i class="fas fa-heart-broken fa-4x text-danger shake"></i>
+                <h2>فشلت!</h2>
+                <p>أعد المحاولة من جديد</p>
+                <p class="text-danger">-1 <i class="fas fa-heart"></i></p>
+                <button class="btn btn-primary" onclick="retryStage()">إعادة المحاولة</button>
+                <button class="btn btn-danger" onclick="backToStages()" style="margin-top:10px">خروج</button>
+            </div>
+        </div>
+
+        <!-- Unlock Modal -->
+        <div id="modal-unlock" class="modal hidden">
+            <div class="modal-content">
+                <i class="fas fa-lock-open fa-3x text-primary"></i>
+                <h3>فتح كاتيغوري؟</h3>
+                <p>تكلفة الفتح: <span id="unlock-cost" class="text-warning font-bold"></span> نجمة</p>
+                <div class="actions">
+                    <button class="btn btn-success" id="confirm-unlock">موافق</button>
+                    <button class="btn btn-danger" onclick="closeModal('modal-unlock')">إلغاء</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Reward Modal -->
+        <div id="modal-daily-reward" class="modal hidden">
+            <div class="modal-content">
+                <i id="reward-icon" class="fas fa-gift fa-4x text-warning pulse"></i>
+                <h2>مكافأة يومية!</h2>
+                <p id="reward-description"></p>
+                <div id="reward-value-display" style="font-size: 2rem; font-weight: bold; margin: 1rem 0;"></div>
+                <button class="btn btn-success" id="claim-reward-btn" onclick="claimDailyReward()">استلام
+                    المكافأة</button>
+                <p id="reward-timer" class="text-muted" style="margin-top: 1rem;"></p>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="modal-settings" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>الإعدادات</h2>
+                    <button class="btn-close" onclick="closeModal('modal-settings')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-list">
+                        <div class="settings-item">
+                            <div class="settings-label">
+                                <i class="fas fa-volume-up"></i>
+                                <span>المؤثرات الصوتية</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="setting-sound" checked
+                                    onchange="updateSetting('sound', this.checked)">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="settings-item">
+                            <div class="settings-label">
+                                <i class="fas fa-music"></i>
+                                <span>الموسيقى</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="setting-music" checked
+                                    onchange="updateSetting('music', this.checked)">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="settings-item">
+                            <div class="settings-label">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>الاهتزاز</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="setting-vibration" checked
+                                    onchange="updateSetting('vibration', this.checked)">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level Up Modal -->
+        <div id="modal-level-up" class="modal hidden">
+            <div class="modal-content level-up-anim">
+                <i class="fas fa-medal fa-5x text-warning"></i>
+                <h2 style="margin-top:1rem; font-size: 2rem;">مستوى جديد!</h2>
+                <p style="font-size: 1.5rem; margin: 1rem 0;">المستوى <span id="new-level-num"
+                        class="text-primary font-bold">2</span></p>
+                <div class="stars-result">
+                    <i class="fas fa-star fa-2x text-warning pulse"></i>
+                </div>
+                <button class="btn btn-primary" onclick="closeModal('modal-level-up')"
+                    style="margin-top: 1rem;">رائع!</button>
+            </div>
+        </div>
+
+        <!-- Profile View -->
+        <section id="view-profile" class="view hidden">
+            <h2 class="section-title">الملف الشخصي</h2>
+            <div class="profile-container">
+                <div class="profile-avatar">
+                    <div class="level-badge-container">
+                        <div class="level-badge" id="profile-level">1</div>
+                        <div class="level-label">Level</div>
+                    </div>
+                    <h3 id="profile-username">...</h3>
+
+                    <div class="xp-container">
+                        <div class="xp-bar-wrapper">
+                            <div class="xp-bar" id="profile-xp-bar"></div>
+                        </div>
+                        <div class="xp-text">
+                            <span id="profile-current-xp">0</span> / <span id="profile-next-xp">--</span> XP
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-star fa-2x text-warning"></i>
+                        <div class="stat-value" id="profile-stars">0</div>
+                        <div class="stat-label">النجوم</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-heart fa-2x text-danger"></i>
+                        <div class="stat-value" id="profile-hearts">0</div>
+                        <div class="stat-label">القلوب</div>
+                    </div>
+                </div>
+                <div class="profile-info">
+                    <p><i class="fas fa-calendar"></i> آخر دخول: <span id="profile-last-login">...</span></p>
+                </div>
+                <div class="profile-actions" style="margin-top: 2rem;">
+                    <button class="btn btn-logout" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        تسجيل الخروج
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Daily Rewards View -->
+        <section id="view-daily-rewards" class="view hidden">
+            <h2 class="section-title">المكافآت اليومية</h2>
+
+            <!-- Streak Display -->
+            <div class="streak-container">
+                <i class="fas fa-fire fa-2x text-warning"></i>
+                <div class="streak-info">
+                    <div class="streak-count" id="streak-count">0</div>
+                    <div class="streak-label">يوم متتالي</div>
+                </div>
+            </div>
+
+            <!-- Rewards Grid -->
+            <div class="daily-rewards-grid" id="daily-rewards-grid">
+                <!-- Days injected here by JavaScript -->
+            </div>
+
+            <!-- Info Section -->
+            <div class="daily-rewards-info">
+                <h4>عن المكافآت اليومية</h4>
+                <p><i class="fas fa-clock"></i> مكافأة واحدة كل 24 ساعة</p>
+                <p><i class="fas fa-sync"></i> المكافآت تتجدد تلقائيًا</p>
+                <p><i class="fas fa-star"></i> نجوم، قلوب، وتعزيزات مجانية</p>
+            </div>
+        </section>
+
+        <!-- Events View (Coming Soon) -->
+        <section id="view-events" class="view hidden">
+            <h2 class="section-title">الأحداث</h2>
+            <div class="coming-soon-container">
+                <i class="fas fa-calendar-star fa-5x text-muted"></i>
+                <h3>قريبًا...</h3>
+                <p>أحداث وتحديات جديدة في الطريق!</p>
+            </div>
+        </section>
+
+        <!-- Bottom Navigation Bar -->
+        <nav id="bottom-nav" class="bottom-nav hidden">
+            <button class="nav-item" data-view="store" onclick="switchBottomNav('store')">
+                <i class="fas fa-shopping-cart"></i>
+                <span>المتجر</span>
+            </button>
+            <button class="nav-item" data-view="daily" onclick="switchBottomNav('daily')">
+                <i class="fas fa-gift"></i>
+                <span>المكافآت</span>
+                <span class="badge hidden" id="daily-badge">!</span>
+            </button>
+            <button class="nav-item nav-item-center active" data-view="categories"
+                onclick="switchBottomNav('categories')">
+                <i class="fas fa-gamepad"></i>
+                <span>اللعبة</span>
+            </button>
+            <button class="nav-item" data-view="profile" onclick="switchBottomNav('profile')">
+                <i class="fas fa-user"></i>
+                <span>الملف</span>
+            </button>
+            <button class="nav-item disabled" data-view="events" onclick="switchBottomNav('events')">
+                <i class="fas fa-calendar-star"></i>
+                <span>الأحداث</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <audio id="audio-bgm" src="sounds/bgm.mp3" loop preload="auto"></audio>
+    <audio id="audio-win" src="sounds/win.mp3" preload="auto"></audio>
+    <audio id="audio-lose" src="sounds/lose.mp3" preload="auto"></audio>
+    <audio id="audio-collect" src="sounds/collect.mp3" preload="auto"></audio>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
